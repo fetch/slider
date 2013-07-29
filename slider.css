@@ -1,0 +1,38 @@
+.slider{
+  height: 100%;
+  line-height: 1;
+  ul, li{
+    display: inline-block;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .slides{
+    position: relative;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+  .slides li{
+    position: absolute;
+    margin-left: 0%;
+    left: 0;
+    &.prev, &.next{
+      &.current{
+        z-index: 15;
+      }
+      z-index: 15;
+    }
+    &.prev{
+      margin-left: -100%;
+    }
+    &.next{
+      margin-left: 100%;
+    }
+    &.current{
+      @include transition(margin-left 300ms ease-in-out);
+      margin-left: 0%;
+      z-index: 10;
+    }
+  }
+}
