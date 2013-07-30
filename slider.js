@@ -46,11 +46,12 @@
 
     init: function(){
       this.$controls = this.$('.controls');
+      this.$indicators = this.$('.indicators');
       this.$tray = this.$('.slides');
       this.$slides = $('.slide', this.$tray);
       this.length = this.$slides.length;
 
-      this.$controls.on('click', 'li:not(.current)', $.proxy(function(event){
+      this.$indicators.on('click', 'li:not(.current)', $.proxy(function(event){
         var slide = $(event.currentTarget).index() + 1;
         this.slide(slide);
       }, this));
@@ -63,7 +64,7 @@
         this.prev();
       }, this));
 
-      $('li', this.$controls).removeClass('current').first().addClass('current');
+      $('li', this.$indicators).removeClass('current').first().addClass('current');
       this.$slides.removeClass('current').first().addClass('current');
 
       if(this.options.auto) this.play();
@@ -82,42 +83,50 @@
 
     next: function(){
       if(this.current !== this.length){
-        this.slide(this.current + 1);
+        this.slide(this.current + 1, 'next');
       }else if(this.options.continuous){
-        this.slide(1);
+        this.slide(1, 'next');
       }
     },
 
     prev: function(){
       if(this.current !== 1){
-        this.slide(this.current - 1);
+        this.slide(this.current - 1, 'prev');
       }else if(this.options.continuous){
-        this.slide(this.length);
+        this.slide(this.length, 'prev');
       }
     },
 
-    slide: function(slide){
+    slide: function(slide, direction){
       if(this.animating) return;
       clearTimeout(this.playTimeout);
-      this.animating = true;
 
-      $('li', this.$controls).removeClass('current').eq(slide - 1).addClass('current');
+      $('li', this.$indicators).removeClass('current').eq(slide - 1).addClass('current');
 
       var current = $('.slide.current', this.$tray)
-        , next = this.$slides.eq(slide - 1);
+        , next = this.$slides.eq(slide - 1)
+        , direction = direction || (slide > this.current ? 'next' : 'prev');
 
-      next.addClass(slide > this.current ? 'next' : 'prev');
-      next.one('transitionend', $.proxy(function(){
+      var done = $.proxy(function(){
         next.removeClass('next prev');
-        current.removeClass('current prev next');
+        current.removeClass('current ' + direction);
         this.animating = false;
+        this.current = slide;
         if(this.options.auto) this.play();
-      }, this));
-      setTimeout(function(){
+        this.$el.trigger('slide', {slide: slide});
+      }, this);
+
+      if(Modernizr && Modernizr.csstransitions){
+        next.addClass(direction);
+        this.animating = true;
+        next.one('transitionend', done);
+        setTimeout(function(){
+          next.addClass('current');
+        }, 100);
+      }else{
         next.addClass('current');
-      });
-      this.current = slide;
-      this.$el.trigger('slide', {slide: slide});
+        done();
+      }
     }
 
   };
